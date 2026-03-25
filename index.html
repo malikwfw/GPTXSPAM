@@ -78,7 +78,20 @@ function lo(i){const c=hs.find(x=>x.id===i);if(c){id=i;ms=c.m;ren();side()}}
 function dl(i){hs=hs.filter(c=>c.id!==i);localStorage.setItem('w',JSON.stringify(hs));rh();if(id===i)n()}
 function sv(){const n=ms.find(m=>m.r==='u')?.c.slice(0,20)||'Untitled',c={id:id,n:n,m:ms,t:Date.now()},x=hs.findIndex(z=>z.id===id);x>=0?hs[x]=c:hs.push(c);localStorage.setItem('w',JSON.stringify(hs))}
 function autoResize(t){t.style.height='auto';t.style.height=Math.min(t.scrollHeight,120)+'px'}
-function handleImg(i){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{pendingImg=e.target.result;byId('imgThumb').src=pendingImg;byId('imgPre').classList.add('active');autoResize(byId('in'))};r.readAsDataURL(f);i.value=''}
+function handleImg(i){
+    const f=i.files[0];
+    if(!f)return;
+    const r=new FileReader();
+    r.onload=e=>{
+        pendingImg=e.target.result;
+        // يحدد إذا كان يعرض صورة حقيقية أم أيقونة ملف بناءً على النوع
+        byId('imgThumb').src = f.type.startsWith('image/') ? pendingImg : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23333"/><text x="25" y="65" font-size="50">📄</text></svg>';
+        byId('imgPre').classList.add('active');
+        autoResize(byId('in'))
+    };
+    r.readAsDataURL(f);
+    i.value=''
+}
 function clearImg(){pendingImg=null;byId('imgPre').classList.remove('active');byId('imgThumb').src='';byId('fileInput').value='';autoResize(byId('in'))}
 function ren(){const w=byId('wel'),b=byId('msg');if(!ms.length){w.style.display='flex';b.innerHTML='';return}w.style.display='none';b.innerHTML=ms.map((m,x)=>`<div class="msg" id="m${x}"><button class="copy-all" onclick="cpyAll(${x})">📋</button><div class="msg-header"><div class="ava ${m.r==='u'?'u-ava':'a-ava'}">${m.r==='u'?'U':'<img src="malik.jpg">'}</div><div class="name">${m.r==='u'?'YOU':'GPT X SPAM'}</div></div>${m.th?`<div class="thinking-row"><div class="thinking-spinner"></div><div class="thinking-text">Thinking</div></div>`:`<div class="content" id="c${x}">${m.img?`<img src="${m.img}" class="msg-img"><br>`:''}${m.r==='u'?m.c.replace(/</g,'&lt;'):fmt(m.c)}${m.str?'<span class="cursor"></span>':''}</div>`}</div>`).join('');byId('cb').scrollTop=99999}
 function cpyAll(x){const m=ms[x];navigator.clipboard.writeText(m.img?'[Image] '+m.c:m.c).then(()=>{const b=document.querySelector(`#m${x} .copy-all`);b.textContent='✓';setTimeout(()=>b.textContent='📋',1500)})}
@@ -88,7 +101,11 @@ function qk(t){byId('in').value=t;se()}
 function extMem(t){[/nama\s+(?:aku|saya)\s+(\w+)/i,/my\s+name\s+is\s+(\w+)/i].forEach(r=>{const m=t.match(r);if(m){mem.n=m[1];localStorage.setItem('m',JSON.stringify(mem))}})}
 function getMem(){return mem.n?`User is ${mem.n}. `:''}
 async function stream(x,t){streaming=true;for(let i=0;i<t.length;i+=15){if(!streaming)break;ms[x].c=t.slice(0,i+15);ms[x].str=true;ren();await new Promise(r=>setTimeout(r,5))}ms[x].str=false;ms[x].c=t;streaming=false;ren()}
-async function se(){if(!API)return alert('Set API Key!'),side();const i=byId('in'),t=i.value.trim();if(!t&&!pendingImg||loading)return;const img=pendingImg;pendingImg=null;clearImg();ms.push({r:'u',c:t,img:img});ren();i.value='';i.style.height='auto';sv();extMem(t);loading=true;byId('bt').disabled=true;byId('bt').innerHTML='■';const x=ms.length;ms.push({r:'a',th:true,str:false,img:null});ren();try{let b;const M=getMem(),P=SP+M+"\nUser: "+t+"\nGPT X SPAM:";if(img){b={contents:[{parts:[{text:SP+M+"\nAnalyze image:"+t},{inline_data:{mime_type:"image/jpeg",data:img.split(',')[1]}}]}]}}else{b={contents:[{parts:[{text:P}]}]}}const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const d=await r.json(),txt=d.candidates?.[0]?.content?.parts?.[0]?.text||'Error';ms[x].th=false;ms[x].c='';ren();await stream(x,txt)}catch(e){ms[x]={r:'a',c:'⚠️ Error: '+e.message,th:false,str:false,img:null}}loading=false;streaming=false;byId('bt').disabled=false;byId('bt').innerHTML='➤';sv()}
+async function se(){if(!API)return alert('Set API Key!'),side();const i=byId('in'),t=i.value.trim();if(!t&&!pendingImg||loading)return;const img=pendingImg;pendingImg=null;clearImg();ms.push({r:'u',c:t,img:img});ren();i.value='';i.style.height='auto';sv();extMem(t);loading=true;byId('bt').disabled=true;byId('bt').innerHTML='■';const x=ms.length;ms.push({r:'a',th:true,str:false,img:null});ren();try{let b;const M=getMem(),P=SP+M+"\nUser: "+t+"\nGPT X SPAM:";if(img){
+    // استخراج نوع الملف الحقيقي (Mime Type) ديناميكياً
+    let mt = img.split(';')[0].split(':')[1] || 'text/plain';
+    b={contents:[{parts:[{text:SP+M+"\nAnalyze request:\n"+t},{inline_data:{mime_type:mt,data:img.split(',')[1]}}]}]}
+}else{b={contents:[{parts:[{text:P}]}]}}const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const d=await r.json(),txt=d.candidates?.[0]?.content?.parts?.[0]?.text||'Error';ms[x].th=false;ms[x].c='';ren();await stream(x,txt)}catch(e){ms[x]={r:'a',c:'⚠️ Error: '+e.message,th:false,str:false,img:null}}loading=false;streaming=false;byId('bt').disabled=false;byId('bt').innerHTML='➤';sv()}
 window.onload=init;
 </script>
 </body>
