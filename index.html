@@ -238,7 +238,7 @@ body{font-family:system-ui,sans-serif;background:var(--b);color:#fff;height:100d
 <button class="plus-btn" onclick="document.getElementById('fileInput').click()">+</button>
 </div>
 <div class="input-center">
-<div class="img-preview" id="imgPre"><div><img src="" class="img-thumb" id="imgThumb"><button class="del-img" onclick="clearImg()">×</button></div></div>
+<div class="img-preview" id="imgPre"><div><img src="" class="img-thumb" id="imgThumb"><button class="del-img" onclick="clearImg()">&times;</button></div></div>
 <textarea class="input-field" id="in" placeholder="Command..." rows="1" oninput="autoResize(this)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();se()}"></textarea>
 </div>
 <div class="input-right">
@@ -249,7 +249,7 @@ body{font-family:system-ui,sans-serif;background:var(--b);color:#fff;height:100d
 </div>
 <div class="ov" id="ov" onclick="side()"></div>
 <div class="sidebar" id="sb">
-<div class="side-h"><div class="side-t">SESSIONS</div><button class="close" onclick="side()">×</button></div>
+<div class="side-h"><div class="side-t">SESSIONS</div><button class="close" onclick="side()">&times;</button></div>
 <button class="new" onclick="n()">＋ NEW</button>
 <div class="api-section">
 <div class="api-label">API Key Settings</div>
@@ -453,8 +453,7 @@ function ownerCreateUser(){
     if(p.length<4){msg.textContent='[ERROR] Password too short';msg.classList.add('err');return;}
     if(u===OWNER_USER){msg.textContent='[ERROR] Reserved username';msg.classList.add('err');return;}
     var users=getUsers();
-    for(var i=0;i<users.length;i++){if(users[i].u===u){msg.textContent='[ERROR] Username exists';msg.classList.add('err');return;}
-    }
+    for(var i=0;i<users.length;i++){if(users[i].u===u){msg.textContent='[ERROR] Username exists';msg.classList.add('err');return;}}
     users.push({u:u,p:p,t:Date.now(),by:'owner'});
     saveUsers(users);
     msg.textContent='[OK] Account created: '+u;msg.classList.add('ok');
@@ -471,7 +470,7 @@ function refreshOwnerUsers(){
     for(var i=0;i<users.length;i++){
         var x=users[i];
         var d=new Date(x.t).toLocaleDateString();
-        html+='<div class="owner-user-item"><div class="owner-user-name">'+x.u.replace(/</g,'<')+'<span class="owner-user-date">'+d+'</span></div><button class="owner-user-del" onclick="ownerDelUser('+i+')">X</button></div>';
+        html+='<div class="owner-user-item"><div class="owner-user-name">'+x.u.replace(/</g,'&lt;')+'<span class="owner-user-date">'+d+'</span></div><button class="owner-user-del" onclick="ownerDelUser('+i+')">X</button></div>';
     }
     list.innerHTML=html;
 }
@@ -511,7 +510,7 @@ function init(){API=localStorage.getItem('worm_api_'+currentUser)||'';hs=JSON.pa
 function side(){byId('sb').classList.toggle('active');byId('ov').classList.toggle('active')}
 function saveApi(){const k=byId('apiInput').value.trim();if(!k)return showStatus('Enter API Key','err');API=k;localStorage.setItem('worm_api_'+currentUser,k);byId('bt').disabled=false;showStatus('Saved!','ok');setTimeout(()=>side(),500)}
 function showStatus(t,s){const e=byId('apiStatus');e.textContent=t;e.className='api-status '+s;e.style.display='block'}
-function rh(){byId('his').innerHTML=hs.slice().reverse().map(c=><div class="item ${c.id===id?'active':''}" onclick="lo(${c.id})"><div class="item-n">${c.n||'Untitled'}</div><div class="item-d">${new Date(c.t).toLocaleDateString()}</div><button class="del" onclick="event.stopPropagation();dl(${c.id})">×</button></div>).join('')}
+function rh(){byId('his').innerHTML=hs.slice().reverse().map(c=>`<div class="item ${c.id===id?'active':''}" onclick="lo(${c.id})"><div class="item-n">${c.n||'Untitled'}</div><div class="item-d">${new Date(c.t).toLocaleDateString()}</div><button class="del" onclick="event.stopPropagation();dl(${c.id})">&times;</button></div>`).join('')}
 function n(){id=Date.now();ms=[];pendingImg=null;pendingFileInfo=null;pendingTextFile=null;clearImg();byId('msg').innerHTML='';byId('wel').style.display='flex';sv();rh()}
 function lo(i){const c=hs.find(x=>x.id===i);if(c){id=i;ms=c.m;ren();side()}}
 function dl(i){hs=hs.filter(c=>c.id!==i);localStorage.setItem('w_'+currentUser,JSON.stringify(hs));rh();if(id===i)n()}
@@ -550,19 +549,19 @@ function handleImg(i){
     i.value=''
 }
 function clearImg(){pendingImg=null;pendingFileInfo=null;pendingTextFile=null;byId('imgPre').classList.remove('active');byId('imgThumb').src='';byId('fileInput').value='';autoResize(byId('in'))}
-function ren(){const w=byId('wel'),b=byId('msg');if(!ms.length){w.style.display='flex';b.innerHTML='';return}w.style.display='none';b.innerHTML=ms.map((m,x)=><div class="msg" id="m${x}"><button class="copy-all" onclick="cpyAll(${x})">📋</button><div class="msg-header"><div class="ava ${m.r==='u'?'u-ava':'a-ava'}">${m.r==='u'?'U':'<img src="malik.jpg">'}</div><div class="name">${m.r==='u'?'YOU':'GPT X SPAM'}</div></div>${m.th?<div class="thinking-row"><div class="thinking-spinner"></div><div class="thinking-text">Thinking</div></div>:<div class="content" id="c${x}">${m.img?<img src="${m.img}" class="msg-img"><br>:''}${m.fileName?<div style="padding:6px 10px;background:rgba(220,20,60,.1);border:1px solid rgba(220,20,60,.3);border-radius:6px;font-size:12px;color:#aaa;margin-bottom:8px;display:inline-block">FILE: ${m.fileName.replace(/</g,'<')}</div><br>:''}${m.r==='u'?m.c.replace(/</g,'<'):fmt(m.c)}${m.str?'<span class="cursor"></span>':''}</div>}</div>).join('');byId('cb').scrollTop=99999}
-function cpyAll(x){const m=ms[x];let t=m.c;if(m.img)t='[Image] '+t;if(m.fileText)t='[File: '+m.fileName+']\n'+m.fileText+'\n'+t;navigator.clipboard.writeText(t).then(()=>{const b=document.querySelector(#m${x} .copy-all);b.textContent='✓';setTimeout(()=>b.textContent='📋',1500)})}
+function ren(){const w=byId('wel'),b=byId('msg');if(!ms.length){w.style.display='flex';b.innerHTML='';return}w.style.display='none';b.innerHTML=ms.map((m,x)=>`<div class="msg" id="m${x}"><button class="copy-all" onclick="cpyAll(${x})">📋</button><div class="msg-header"><div class="ava ${m.r==='u'?'u-ava':'a-ava'}">${m.r==='u'?'U':'<img src="malik.jpg">'}</div><div class="name">${m.r==='u'?'YOU':'GPT X SPAM'}</div></div>${m.th?`<div class="thinking-row"><div class="thinking-spinner"></div><div class="thinking-text">Thinking</div></div>`:`<div class="content" id="c${x}">${m.img?`<img src="${m.img}" class="msg-img"><br>`:''}${m.fileName?`<div style="padding:6px 10px;background:rgba(220,20,60,.1);border:1px solid rgba(220,20,60,.3);border-radius:6px;font-size:12px;color:#aaa;margin-bottom:8px;display:inline-block">FILE: ${m.fileName.replace(/</g,'&lt;')}</div><br>`:''}${m.r==='u'?m.c.replace(/</g,'&lt;'):fmt(m.c)}${m.str?'<span class="cursor"></span>':''}</div>`}</div>`).join('');byId('cb').scrollTop=99999}
+function cpyAll(x){const m=ms[x];let t=m.c;if(m.img)t='[Image] '+t;if(m.fileText)t='[File: '+m.fileName+']\n'+m.fileText+'\n'+t;navigator.clipboard.writeText(t).then(()=>{const b=document.querySelector(`#m${x} .copy-all`);b.textContent='✓';setTimeout(()=>b.textContent='📋',1500)})}
 function cpyCode(b){const c=b.parentElement.nextElementSibling.innerText;navigator.clipboard.writeText(c);b.textContent='✓';setTimeout(()=>b.textContent='Copy',1000)}
-function fmt(t){return t.replace(/</g,'<').replace(/(\w+)?\n([\s\S]*?)``/g,(_,l,c)=><div class="code"><div class="code-h"><span>${l||'code'}</span><button class="copy" onclick="cpyCode(this)">Copy</button></div><pre class="code-c">${c}</pre></div>).replace(/([^]+)/g,'<code style="background:rgba(220,20,60,.3);color:var(--c);padding:2px 6px;border-radius:4px;font-size:12px">$1</code>').replace(/\*\*(.*?)\*\*/g,'<strong style="color:#fff">$1</strong>').replace(/\n/g,'<br>')}
+function fmt(t){return t.replace(/</g,'&lt;').replace(/```(\w+)?\n([\s\S]*?)```/g,(_,l,c)=>`<div class="code"><div class="code-h"><span>${l||'code'}</span><button class="copy" onclick="cpyCode(this)">Copy</button></div><pre class="code-c">${c}</pre></div>`).replace(/`([^`]+)`/g,'<code style="background:rgba(220,20,60,.3);color:var(--c);padding:2px 6px;border-radius:4px;font-size:12px">$1</code>').replace(/\*\*(.*?)\*\*/g,'<strong style="color:#fff">$1</strong>').replace(/\n/g,'<br>')}
 function qk(t){byId('in').value=t;se()}
 function extMem(t){[/nama\s+(?:aku|saya)\s+(\w+)/i,/my\s+name\s+is\s+(\w+)/i].forEach(r=>{const m=t.match(r);if(m){mem.n=m[1];localStorage.setItem('m_'+currentUser,JSON.stringify(mem))}})}
-function getMem(){return mem.n?User is ${mem.n}. :''}
+function getMem(){return mem.n?`User is ${mem.n}. `:''}
 async function stream(x,t){streaming=true;for(let i=0;i<t.length;i+=15){if(!streaming)break;ms[x].c=t.slice(0,i+15);ms[x].str=true;ren();await new Promise(r=>setTimeout(r,5))}ms[x].str=false;ms[x].c=t;streaming=false;ren()}
-async function se(){if(!API)return alert('Set API Key!'),side();const i=byId('in'),t=i.value.trim();if(!t&&!pendingImg&&!pendingTextFile||loading)return;const img=pendingImg,fInfo=pendingFileInfo,txtF=pendingTextFile;pendingImg=null;pendingFileInfo=null;pendingTextFile=null;clearImg();let userMsg={r:'u',c:t,img:img};if(txtF){userMsg.fileName=txtF.name;userMsg.fileText=txtF.text}ms.push(userMsg);ren();i.value='';i.style.height='auto';sv();extMem(t);loading=true;byId('bt').disabled=true;byId('bt').innerHTML='■';const x=ms.length;ms.push({r:'a',th:true,str:false,img:null});ren();try{const M=getMem();let contents=[];const recent=ms.slice(-40);let lastUIdx=-1;for(let j=recent.length-1;j>=0;j--){if(recent[j].r==='u'){lastUIdx=j;break}}for(let idx=0;idx<recent.length;idx++){const m=recent[idx];if(m.r==='u'){let parts=[];let ut=m.c||'';if(m.fileText){if(idx===lastUIdx){ut+='\n\n--- File: '+m.fileName+' ---\n'+m.fileText+'\n--- End of File ---'}else{ut+='\n\n[Attached file: '+m.fileName+']'}}if(ut)parts.push({text:ut});if(m.img){if(idx===lastUIdx){let mt=m.img.split(';')[0].split(':')[1]||'application/octet-stream';parts.push({inline_data:{mime_type:mt,data:m.img.split(',')[1]}})}else{parts.push({text:'[Attached image]'})}}if(parts.length)contents.push({role:'user',parts:parts})}else if(m.r==='a'&&!m.th&&m.c){contents.push({role:'model',parts:[{text:m.c}]})}}let body={system_instruction:{parts:[{text:SP+M}]},contents:contents,generationConfig:{temperature:1,topP:0.95,topK:40,maxOutputTokens:65536}};const r=await fetch(https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?alt=sse&key=${API},{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok){const err=await r.json();throw new Error(err.error?.message||'API Error')}ms[x].th=false;ms[x].c='';ren();const reader=r.body.getReader();const decoder=new TextDecoder();let fullText='';let buffer='';while(true){const{done,value}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});const lines=buffer.split('\n');buffer=lines.pop()||'';for(let line of lines){if(line.startsWith('data: ')){const data=line.slice(6).trim();if(data==='[DONE]')continue;try{const json=JSON.parse(data);const chunk=json.candidates?.[0]?.content?.parts?.[0]?.text;if(chunk){fullText+=chunk;ms[x].c=fullText;ms[x].str=true;ren()}}catch(e){}}}}ms[x].str=false;ms[x].c=fullText;streaming=false;ren()}catch(e){ms[x]={r:'a',c:'Error: '+e.message,th:false,str:false,img:null}}loading=false;streaming=false;byId('bt').disabled=false;byId('bt').innerHTML='➤';sv()}
+async function se(){if(!API)return alert('Set API Key!'),side();const i=byId('in'),t=i.value.trim();if(!t&&!pendingImg&&!pendingTextFile||loading)return;const img=pendingImg,fInfo=pendingFileInfo,txtF=pendingTextFile;pendingImg=null;pendingFileInfo=null;pendingTextFile=null;clearImg();let userMsg={r:'u',c:t,img:img};if(txtF){userMsg.fileName=txtF.name;userMsg.fileText=txtF.text}ms.push(userMsg);ren();i.value='';i.style.height='auto';sv();extMem(t);loading=true;byId('bt').disabled=true;byId('bt').innerHTML='■';const x=ms.length;ms.push({r:'a',th:true,str:false,img:null});ren();try{const M=getMem();let contents=[];const recent=ms.slice(-40);let lastUIdx=-1;for(let j=recent.length-1;j>=0;j--){if(recent[j].r==='u'){lastUIdx=j;break}}for(let idx=0;idx<recent.length;idx++){const m=recent[idx];if(m.r==='u'){let parts=[];let ut=m.c||'';if(m.fileText){if(idx===lastUIdx){ut+='\n\n--- File: '+m.fileName+' ---\n'+m.fileText+'\n--- End of File ---'}else{ut+='\n\n[Attached file: '+m.fileName+']'}}if(ut)parts.push({text:ut});if(m.img){if(idx===lastUIdx){let mt=m.img.split(';')[0].split(':')[1]||'application/octet-stream';parts.push({inline_data:{mime_type:mt,data:m.img.split(',')[1]}})}else{parts.push({text:'[Attached image]'})}}if(parts.length)contents.push({role:'user',parts:parts})}else if(m.r==='a'&&!m.th&&m.c){contents.push({role:'model',parts:[{text:m.c}]})}}let body={system_instruction:{parts:[{text:SP+M}]},contents:contents,generationConfig:{temperature:1,topP:0.95,topK:40,maxOutputTokens:65536}};const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${API}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok){const err=await r.json();throw new Error(err.error?.message||'API Error')}ms[x].th=false;ms[x].c='';ren();const reader=r.body.getReader();const decoder=new TextDecoder();let fullText='';let buffer='';while(true){const{done,value}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});const lines=buffer.split('\n');buffer=lines.pop()||'';for(let line of lines){if(line.startsWith('data: ')){const data=line.slice(6).trim();if(data==='[DONE]')continue;try{const json=JSON.parse(data);const chunk=json.candidates?.[0]?.content?.parts?.[0]?.text;if(chunk){fullText+=chunk;ms[x].c=fullText;ms[x].str=true;ren()}}catch(e){}}}}ms[x].str=false;ms[x].c=fullText;streaming=false;ren()}catch(e){ms[x]={r:'a',c:'Error: '+e.message,th:false,str:false,img:null}}loading=false;streaming=false;byId('bt').disabled=false;byId('bt').innerHTML='➤';sv()}
 
 /* === BOOT === */
 window.onload=function(){
-initAuthEffects();
+    initAuthEffects();
 };
 </script>
 </body>
